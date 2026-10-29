@@ -652,6 +652,12 @@ AutoTypeAction::Result AutoTypeExecutorX11::execClearField(const AutoTypeClearFi
     return AutoTypeAction::Result::Ok();
 }
 
+bool AutoTypePlatformX11::activatePreviousWindow()
+{
+    updateKeymap();
+    return sendKey(XK_Tab, qtToNativeModifiers(Qt::AltModifier)).isOk();
+}
+
 bool AutoTypePlatformX11::raiseWindow(WId window)
 {
     if (m_atomNetActiveWindow == None) {

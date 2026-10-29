@@ -38,6 +38,7 @@ public:
     WId activeWindow() override;
     QString activeWindowTitle() override;
     bool raiseWindow(WId pid) override;
+    bool activatePreviousWindow() override;
     AutoTypeExecutor& executor() const override;
 
     bool hideOwnWindow() override;

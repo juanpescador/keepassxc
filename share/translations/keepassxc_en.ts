@@ -668,6 +668,10 @@
         <source>Show autocomplete suggestions for username and additional attributes</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Minimize when performing entry-level AutoType</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ApplicationSettingsWidgetSecurity</name>

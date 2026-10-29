@@ -19,6 +19,7 @@
 #include "TestAutoType.h"
 
 #include <QRegularExpression>
+#include <QSignalSpy>
 #include <QTest>
 
 #include "autotype/AutoType.h"
@@ -52,7 +53,10 @@ void TestAutoType::initTestCase()
 void TestAutoType::init()
 {
     config()->set(Config::AutoTypeEntryTitleMatch, false);
+    config()->set(Config::AutoTypeMinimizeOnPerform, true);
     m_test->clearActions();
+    m_test->setPreviousWindowAvailable(true);
+    m_test->setOwnWindowActive(false);
 
     m_db = QSharedPointer<Database>::create();
     m_dbList.clear();
@@ -139,6 +143,7 @@ void TestAutoType::init()
 
 void TestAutoType::cleanup()
 {
+    config()->set(Config::AutoTypeMinimizeOnPerform, true);
 }
 
 void TestAutoType::testInternal()
@@ -158,6 +163,71 @@ void TestAutoType::testSingleAutoType()
              QString("myuser%1mypass%2").arg(m_test->keyToString(Qt::Key_Tab)).arg(m_test->keyToString(Qt::Key_Enter)));
 }
 
+void TestAutoType::testEntryAutoTypeWindow_data()
+{
+    QTest::addColumn<bool>("minimize");
+    QTest::addColumn<QString>("sequence");
+
+    QTest::newRow("minimize-default") << true << QString();
+    QTest::newRow("minimize-password") << true << QString("{PASSWORD}");
+    QTest::newRow("keep-open-default") << false << QString();
+    QTest::newRow("keep-open-password") << false << QString("{PASSWORD}");
+}
+
+void TestAutoType::testEntryAutoTypeWindow()
+{
+    QFETCH(bool, minimize);
+    QFETCH(QString, sequence);
+    config()->set(Config::AutoTypeMinimizeOnPerform, minimize);
+    QSignalSpy finished(m_autoType, &AutoType::autotypeFinished);
+
+    if (sequence.isEmpty()) {
+        m_autoType->performAutoType(m_entry1);
+    } else {
+        m_autoType->performAutoTypeWithSequence(m_entry1, sequence);
+    }
+
+    QCOMPARE(m_test->previousWindowActivationCount(), minimize ? 0 : 1);
+    if (sequence.isEmpty()) {
+        QCOMPARE(m_test->actionChars(),
+                 QString("myuser%1mypass%2").arg(m_test->keyToString(Qt::Key_Tab), m_test->keyToString(Qt::Key_Enter)));
+    } else {
+        QCOMPARE(m_test->actionChars(), m_entry1->password());
+    }
+    QCOMPARE(finished.count(), 1);
+}
+
+void TestAutoType::testEntryAutoTypeActivationFailure_data()
+{
+    QTest::addColumn<bool>("previousWindowAvailable");
+    QTest::addColumn<bool>("ownWindowActive");
+
+    QTest::newRow("activation-failed") << false << false;
+    QTest::newRow("focus-unchanged") << true << true;
+}
+
+void TestAutoType::testEntryAutoTypeActivationFailure()
+{
+    QFETCH(bool, previousWindowAvailable);
+    QFETCH(bool, ownWindowActive);
+    config()->set(Config::AutoTypeMinimizeOnPerform, false);
+    m_test->setPreviousWindowAvailable(previousWindowAvailable);
+    m_test->setOwnWindowActive(ownWindowActive);
+    QSignalSpy finished(m_autoType, &AutoType::autotypeFinished);
+
+    m_autoType->performAutoTypeWithSequence(m_entry1, "{PASSWORD}");
+    QCOMPARE(m_test->previousWindowActivationCount(), 1);
+    QVERIFY(m_test->actionChars().isEmpty());
+    QCOMPARE(finished.count(), 1);
+
+    m_test->setPreviousWindowAvailable(true);
+    m_test->setOwnWindowActive(false);
+    m_autoType->performAutoTypeWithSequence(m_entry1, "{PASSWORD}");
+    QCOMPARE(m_test->previousWindowActivationCount(), 2);
+    QCOMPARE(m_test->actionChars(), m_entry1->password());
+    QCOMPARE(finished.count(), 2);
+}
+
 void TestAutoType::testGlobalAutoTypeWithNoMatch()
 {
     m_test->setActiveWindowTitle("nomatch");
@@ -169,11 +239,13 @@ void TestAutoType::testGlobalAutoTypeWithNoMatch()
 
 void TestAutoType::testGlobalAutoTypeWithOneMatch()
 {
+    config()->set(Config::AutoTypeMinimizeOnPerform, false);
     m_test->setActiveWindowTitle("custom window");
     emit osUtils->globalShortcutTriggered("autotype");
     m_autoType->performGlobalAutoType(m_dbList);
 
     QCOMPARE(m_test->actionChars(), QString("%1association%2").arg(m_entry1->username()).arg(m_entry1->password()));
+    QCOMPARE(m_test->previousWindowActivationCount(), 0);
 }
 
 void TestAutoType::testGlobalAutoTypeTitleMatch()

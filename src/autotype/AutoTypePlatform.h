@@ -18,6 +18,7 @@
 #ifndef KEEPASSXC_AUTOTYPEPLATFORM_H
 #define KEEPASSXC_AUTOTYPEPLATFORM_H
 
+#include <QApplication>
 #include <QWidget>
 
 #include "autotype/AutoTypeAction.h"
@@ -32,6 +33,11 @@ public:
     virtual WId activeWindow() = 0;
     virtual QString activeWindowTitle() = 0;
     virtual bool raiseWindow(WId window) = 0;
+    virtual bool activatePreviousWindow() = 0;
+    virtual bool isOwnWindowActive()
+    {
+        return QApplication::activeWindow() || QApplication::activeModalWidget();
+    }
     virtual bool hasWindowAccess()
     {
         return true;

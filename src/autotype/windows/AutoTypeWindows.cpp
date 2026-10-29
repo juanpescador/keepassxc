@@ -87,6 +87,26 @@ bool AutoTypePlatformWin::raiseWindow(WId window)
     return ::BringWindowToTop(hwnd) && ::SetForegroundWindow(hwnd);
 }
 
+bool AutoTypePlatformWin::activatePreviousWindow()
+{
+    INPUT inputs[4] = {};
+    for (auto& input : inputs) {
+        input.type = INPUT_KEYBOARD;
+    }
+    inputs[0].ki.wVk = VK_MENU;
+    inputs[1].ki.wVk = VK_TAB;
+    inputs[2].ki.wVk = VK_TAB;
+    inputs[2].ki.dwFlags = KEYEVENTF_KEYUP;
+    inputs[3].ki.wVk = VK_MENU;
+    inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
+
+    if (::SendInput(4, inputs, sizeof(INPUT)) != 4) {
+        ::SendInput(2, inputs + 2, sizeof(INPUT));
+        return false;
+    }
+    return true;
+}
+
 //
 // Send unicode character to foreground window
 //

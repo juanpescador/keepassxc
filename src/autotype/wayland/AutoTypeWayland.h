@@ -35,6 +35,7 @@ public:
     WId activeWindow() override;
     QString activeWindowTitle() override;
     bool raiseWindow(WId window) override;
+    bool activatePreviousWindow() override;
     bool hasWindowAccess() override
     {
         return false;

@@ -40,6 +40,7 @@ public:
     WId activeWindow() override;
     QString activeWindowTitle() override;
     bool raiseWindow(WId window) override;
+    bool activatePreviousWindow() override;
     AutoTypeExecutor& executor() const override;
     void updateKeymap();
 

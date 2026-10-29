@@ -144,6 +144,18 @@ bool AutoTypePlatformWayland::raiseWindow(WId window)
     return true;
 }
 
+bool AutoTypePlatformWayland::activatePreviousWindow()
+{
+    auto* portal = nixUtils()->remoteDesktopPortal();
+    portal->waitForSession();
+    if (!portal->errorString().isEmpty()) {
+        return false;
+    }
+
+    AutoTypeKey switchWindow(Qt::Key_Tab, Qt::AltModifier);
+    return sendKey(&switchWindow).isOk();
+}
+
 AutoTypeAction::Result AutoTypePlatformWayland::sendKey(const AutoTypeKey* action)
 {
     xkb_keysym_t keysym;

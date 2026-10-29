@@ -108,6 +108,7 @@ ApplicationSettingsWidget::ApplicationSettingsWidget(QWidget* parent)
         {Config::UseGroupIconOnEntryCreation, m_generalUi->useGroupIconOnEntryCreationCheckBox},
         {Config::AutoTypeEntryTitleMatch, m_generalUi->autoTypeEntryTitleMatchCheckBox},
         {Config::AutoTypeEntryURLMatch, m_generalUi->autoTypeEntryURLMatchCheckBox},
+        {Config::AutoTypeMinimizeOnPerform, m_generalUi->autoTypeMinimizeOnPerformCheckBox},
         {Config::AutoTypeHideExpiredEntry, m_generalUi->autoTypeHideExpiredEntryCheckBox},
         {Config::AutoTypeDesktopPortalPersistConnection, m_generalUi->autoTypeDesktopPortalPersistConnectionCheckBox},
         {Config::AutoTypeDesktopPortalUseClipboard, m_generalUi->autoTypeDesktopPortalUseClipboardCheckBox},

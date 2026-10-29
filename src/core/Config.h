@@ -62,6 +62,7 @@ public:
         AutoTypeEntryURLMatch,
         AutoTypeDelay,
         AutoTypeStartDelay,
+        AutoTypeMinimizeOnPerform,
         AutoTypeHideExpiredEntry,
         AutoTypeDialogSortColumn,
         AutoTypeDialogSortOrder,

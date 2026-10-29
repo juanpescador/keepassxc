@@ -33,6 +33,8 @@ public:
     WId activeWindow() override;
     QString activeWindowTitle() override;
     bool raiseWindow(WId window) override;
+    bool activatePreviousWindow() override;
+    bool isOwnWindowActive() override;
     AutoTypeExecutor& executor() const override;
 
 #if defined(Q_OS_MACOS)
@@ -41,6 +43,9 @@ public:
 #endif
 
     void setActiveWindowTitle(const QString& title);
+    void setPreviousWindowAvailable(bool available);
+    void setOwnWindowActive(bool active);
+    int previousWindowActivationCount() const;
 
     QString actionChars();
     int actionCount();
@@ -53,6 +58,9 @@ private:
     AutoTypeExecutor* m_executor = nullptr;
     int m_actionCount = 0;
     QString m_actionChars;
+    bool m_previousWindowAvailable = true;
+    bool m_ownWindowActive = false;
+    int m_previousWindowActivationCount = 0;
 };
 
 class AutoTypeExecutorTest : public AutoTypeExecutor

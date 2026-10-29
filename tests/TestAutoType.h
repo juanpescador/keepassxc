@@ -39,6 +39,10 @@ private slots:
 
     void testInternal();
     void testSingleAutoType();
+    void testEntryAutoTypeWindow_data();
+    void testEntryAutoTypeWindow();
+    void testEntryAutoTypeActivationFailure_data();
+    void testEntryAutoTypeActivationFailure();
     void testGlobalAutoTypeWithNoMatch();
     void testGlobalAutoTypeWithOneMatch();
     void testGlobalAutoTypeTitleMatch();

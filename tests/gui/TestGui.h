@@ -38,6 +38,7 @@ private slots:
     void cleanupTestCase();
 
     void testSettingsDefaultTabOrder();
+    void testAutoTypeMinimizeSetting();
     void testCreateDatabase();
     void testMergeDatabase();
     void testRemoteSyncDatabaseSameKey();

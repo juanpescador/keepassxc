@@ -208,6 +208,30 @@ void TestGui::testSettingsDefaultTabOrder()
     QTest::keyClick(dbSettingsWidget, Qt::Key::Key_Escape);
 }
 
+void TestGui::testAutoTypeMinimizeSetting()
+{
+    triggerAction("actionSettings");
+    auto* settingsWidget = m_mainWindow->findChild<ApplicationSettingsWidget*>();
+    QVERIFY(settingsWidget);
+    auto* checkBox = settingsWidget->findChild<QCheckBox*>("autoTypeMinimizeOnPerformCheckBox");
+    QVERIFY(checkBox);
+    auto* autoTypeTab = settingsWidget->findChild<QWidget*>("tabAutotype");
+    QVERIFY(autoTypeTab);
+    QVERIFY(autoTypeTab->isAncestorOf(checkBox));
+    QVERIFY(checkBox->isChecked());
+
+    checkBox->setChecked(false);
+    QVERIFY(QMetaObject::invokeMethod(settingsWidget, "saveSettings", Qt::DirectConnection));
+    QVERIFY(!config()->get(Config::AutoTypeMinimizeOnPerform).toBool());
+    settingsWidget->loadSettings();
+    QVERIFY(!checkBox->isChecked());
+
+    checkBox->setChecked(true);
+    QTest::keyClick(settingsWidget, Qt::Key_Escape);
+    settingsWidget->loadSettings();
+    QVERIFY(!checkBox->isChecked());
+}
+
 void TestGui::testCreateDatabase()
 {
     TEST_MODAL_NO_WAIT(

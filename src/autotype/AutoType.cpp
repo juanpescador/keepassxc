@@ -21,6 +21,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QRegularExpression>
+#include <QScopeGuard>
 
 #include "config-keepassx.h"
 
@@ -305,12 +306,16 @@ void AutoType::executeAutoTypeActions(const Entry* entry,
     if (!m_inAutoType.tryLock()) {
         return;
     }
+    auto cleanup = qScopeGuard([this] {
+        m_inAutoType.unlock();
+        emit autotypeFinished();
+    });
 
-    // Explicitly hide the main window if no target window is specified
+    const bool keepWindowOpen = window == 0 && !config()->get(Config::AutoTypeMinimizeOnPerform).toBool();
     if (window == 0) {
 #if defined(Q_OS_MACOS)
         // Check for accessibility permission
-        if (!macUtils()->enableAccessibility()) {
+        if (getMainWindow() && !macUtils()->enableAccessibility()) {
             MessageBox::information(nullptr,
                                     tr("Permission Required"),
                                     tr("KeePassXC requires the Accessibility permission in order to perform entry "
@@ -319,13 +324,30 @@ void AutoType::executeAutoTypeActions(const Entry* entry,
             return;
         }
 
-        macUtils()->raiseLastActiveWindow();
-        m_platform->hideOwnWindow();
+        if (!keepWindowOpen && getMainWindow()) {
+            m_platform->activatePreviousWindow();
+            m_platform->hideOwnWindow();
+        }
 #else
-        if (getMainWindow()) {
+        if (!keepWindowOpen && getMainWindow()) {
             getMainWindow()->minimizeOrHide();
         }
 #endif
+        if (keepWindowOpen) {
+            if (getMainWindow()) {
+                for (int i = 0; i < 5 && QApplication::queryKeyboardModifiers() != Qt::NoModifier; ++i) {
+                    Tools::wait(100);
+                }
+                if (QApplication::queryKeyboardModifiers() != Qt::NoModifier) {
+                    qWarning("Modifier keys are still held, interrupting auto-type.");
+                    return;
+                }
+            }
+            if (!m_platform->activatePreviousWindow()) {
+                qWarning("Could not activate the previous window, interrupting auto-type.");
+                return;
+            }
+        }
     } else {
         // Restore window state (macOS only) then raise the target window
         restoreWindowState();
@@ -339,6 +361,11 @@ void AutoType::executeAutoTypeActions(const Entry* entry,
     // Initial Auto-Type delay to allow window to come to foreground
     Tools::wait(qBound(s_minWaitDelay, config()->get(Config::AutoTypeStartDelay).toInt(), s_maxWaitDelay));
 
+    if (keepWindowOpen && m_platform->isOwnWindowActive()) {
+        qWarning("KeePassXC is still active, interrupting auto-type.");
+        return;
+    }
+
     // Grab the current active window after everything settles
     if (window == 0) {
         window = m_platform->activeWindow();
@@ -346,7 +373,7 @@ void AutoType::executeAutoTypeActions(const Entry* entry,
 
     for (const auto& action : asConst(actions)) {
         // Cancel Auto-Type if the active window changed
-        if (m_platform->activeWindow() != window) {
+        if (m_platform->activeWindow() != window || (keepWindowOpen && m_platform->isOwnWindowActive())) {
             qWarning("Active window changed, interrupting auto-type.");
             break;
         }
@@ -379,9 +406,6 @@ void AutoType::executeAutoTypeActions(const Entry* entry,
             break;
         }
     }
-
-    m_inAutoType.unlock();
-    emit autotypeFinished();
 }
 
 /**

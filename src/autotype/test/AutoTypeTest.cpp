@@ -39,7 +39,7 @@ QStringList AutoTypePlatformTest::windowTitles()
 
 WId AutoTypePlatformTest::activeWindow()
 {
-    return 0;
+    return 1;
 }
 
 QString AutoTypePlatformTest::activeWindowTitle()
@@ -71,6 +71,7 @@ void AutoTypePlatformTest::clearActions()
 {
     m_actionChars.clear();
     m_actionCount = 0;
+    m_previousWindowActivationCount = 0;
 }
 
 void AutoTypePlatformTest::addAction(const AutoTypeKey* action)
@@ -88,6 +89,32 @@ bool AutoTypePlatformTest::raiseWindow(WId window)
     Q_UNUSED(window);
 
     return false;
+}
+
+bool AutoTypePlatformTest::activatePreviousWindow()
+{
+    ++m_previousWindowActivationCount;
+    return m_previousWindowAvailable;
+}
+
+bool AutoTypePlatformTest::isOwnWindowActive()
+{
+    return m_ownWindowActive;
+}
+
+void AutoTypePlatformTest::setPreviousWindowAvailable(bool available)
+{
+    m_previousWindowAvailable = available;
+}
+
+void AutoTypePlatformTest::setOwnWindowActive(bool active)
+{
+    m_ownWindowActive = active;
+}
+
+int AutoTypePlatformTest::previousWindowActivationCount() const
+{
+    return m_previousWindowActivationCount;
 }
 
 #if defined(Q_OS_MACOS)

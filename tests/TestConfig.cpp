@@ -47,6 +47,23 @@ void TestConfig::testUpgrade()
     tempFile.remove();
 }
 
+void TestConfig::testAutoTypeMinimizeOnPerform()
+{
+    TemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    tempFile.close();
+    Config::createConfigFromFile(tempFile.fileName());
+    QVERIFY(config()->get(Config::AutoTypeMinimizeOnPerform).toBool());
+
+    config()->set(Config::AutoTypeMinimizeOnPerform, false);
+    config()->sync();
+    Config::createConfigFromFile(tempFile.fileName());
+    QVERIFY(!config()->get(Config::AutoTypeMinimizeOnPerform).toBool());
+
+    config()->resetToDefaults();
+    QVERIFY(config()->get(Config::AutoTypeMinimizeOnPerform).toBool());
+}
+
 void TestConfig::testURLDoubleClickMigration()
 {
     // Test migration from OpenURLOnDoubleClick to URLDoubleClickAction
